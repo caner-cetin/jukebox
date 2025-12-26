@@ -3,6 +3,7 @@ import { displayRecordingInfo, hideRecordingInfo } from './recordingInfo.js';
 
 let currentTrack: string | null = null;
 let currentArtist: string | null = null;
+let hasLoadedOnce = false;
 
 function updateTitleAnimation(titleElement: HTMLElement, titleWrapper: HTMLElement): void {
     setTimeout(() => {
@@ -31,11 +32,17 @@ async function handleCoverArt(recording: MusicBrainzRecording): Promise<void> {
     }
 
     const coverUrl = `https://coverartarchive.org/release/${releaseId}/front-250`;
-    const coverResponse = await fetch(coverUrl, { method: 'HEAD' });
     
-    if (coverResponse.ok) {
-        showCoverArt(coverUrl);
-    } else {
+    try {
+        const coverResponse = await fetch(coverUrl, { method: 'HEAD' });
+        
+        if (coverResponse.ok) {
+            showCoverArt(coverUrl);
+        } else {
+            hideCoverArt();
+        }
+    } catch (error) {
+        console.error('Error checking cover art:', error);
         hideCoverArt();
     }
 }
@@ -84,8 +91,16 @@ export async function fetchNowPlaying(): Promise<void> {
 
         displayRecordingInfo(result.recording, result.artistData);
         await handleCoverArt(result.recording);
+        hasLoadedOnce = true;
     } catch (error) {
         console.error('Error fetching now playing:', error);
+        
+        hideCoverArt();
+        
+        if (!hasLoadedOnce) {
+            return;
+        }
+        
         const titleElement = document.getElementById('trackTitle');
         const titleWrapper = titleElement?.querySelector('.track-title-wrapper');
         if (!titleWrapper) return;
