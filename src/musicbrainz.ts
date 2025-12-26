@@ -30,6 +30,7 @@ export interface MusicBrainzRecording {
         title?: string;
         country?: string;
         date?: string;
+        status?: string;
         'release-group'?: {
             'primary-type'?: string;
             'secondary-types'?: string[];
@@ -61,30 +62,63 @@ export async function fetchArtistInfo(artistName: string): Promise<MusicBrainzAr
     }
 }
 
+type Release = NonNullable<MusicBrainzRecording['releases']>[number];
+
+function isOfficialAlbumOrEP(release: Release): boolean {
+    if (!release) return false;
+    
+    const releaseGroup = release['release-group'];
+    if (!releaseGroup) return false;
+    
+    const primaryType = releaseGroup['primary-type']?.toLowerCase();
+    const secondaryTypes = releaseGroup['secondary-types']?.map(t => t.toLowerCase()) || [];
+    
+    if (secondaryTypes.includes('live')) return false;
+    
+    return primaryType === 'album' || primaryType === 'ep';
+}
+
 export async function fetchCoverArt(
     artist: string, 
     title: string
 ): Promise<{ recording: MusicBrainzRecording; artistData: MusicBrainzArtist | null } | null> {
     try {
         const searchQuery = encodeURIComponent(`artist:"${artist}" AND recording:"${title}"`);
-        const searchUrl = `https://musicbrainz.org/ws/2/recording/?query=${searchQuery}&fmt=json&limit=1`;
+        const searchUrl = `https://musicbrainz.org/ws/2/recording/?query=${searchQuery}&fmt=json&limit=25`;
 
         const searchResponse = await fetch(searchUrl);
         const searchData: MusicBrainzRecordingResponse = await searchResponse.json();
 
-        const recording = searchData.recordings?.[0];
-        
-        if (recording) {
-            let artistData: MusicBrainzArtist | null = null;
-            if (recording['artist-credit'] && recording['artist-credit'].length > 0) {
-                const primaryArtist = recording['artist-credit'][0].artist;
-                if (primaryArtist && primaryArtist.name) {
-                    artistData = await fetchArtistInfo(primaryArtist.name);
-                }
-            }
-            
-            return { recording, artistData };
+        if (!searchData.recordings || searchData.recordings.length === 0) {
+            return null;
         }
+
+        for (const recording of searchData.recordings) {
+            if (!recording.releases || recording.releases.length === 0) continue;
+            
+            const officialReleases = recording.releases.filter(release => {
+                const status = release.status?.toLowerCase();
+                return status === 'official' && isOfficialAlbumOrEP(release);
+            });
+            
+            if (officialReleases.length > 0) {
+                const filteredRecording: MusicBrainzRecording = {
+                    ...recording,
+                    releases: officialReleases
+                };
+                
+                let artistData: MusicBrainzArtist | null = null;
+                if (recording['artist-credit'] && recording['artist-credit'].length > 0) {
+                    const primaryArtist = recording['artist-credit'][0].artist;
+                    if (primaryArtist && primaryArtist.name) {
+                        artistData = await fetchArtistInfo(primaryArtist.name);
+                    }
+                }
+                
+                return { recording: filteredRecording, artistData };
+            }
+        }
+        
         return null;
     } catch (error) {
         console.error('Error fetching cover art:', error);
