@@ -1,0 +1,30 @@
+import jukebox from "./index.html"
+
+import { BodyInit, ResponseInit } from "undici-types";
+
+export class ClientResponse extends Response {
+  constructor(body?: BodyInit, init?: ResponseInit) {
+    super(body, init);
+    this.headers.set("Access-Control-Allow-Origin", "*");
+    this.headers.set("Access-Control-Allow-Methods", "GET, OPTIONS");
+    this.headers.set("Access-Control-Allow-Headers", "Content-Type");
+  }
+}
+
+const server = Bun.serve({
+  port: process.env.SERVER_PORT || 3000,
+  hostname: process.env.SERVER_HOST || "jukebox.cansu.dev",
+  development: process.env.NODE_ENV == 'development',
+  routes: {
+    "/": jukebox,
+    "/api/yuri": async (req) => {
+      const uri = new URL(req.url)
+      const page = uri.searchParams.get("page") || "0";
+      const limit = uri.searchParams.get("limit") || "10";
+      const tags = uri.searchParams.get("tags") || "yuri+-loli";
+      const safebooruUrl = `https://safebooru.org/index.php?page=dapi&s=post&q=index&limit=${limit}&json=1&tags=${tags}&pid=${page}`;
+      const response = await fetch(safebooruUrl);
+      return Response.json(await response.json())
+    },
+  }
+});
