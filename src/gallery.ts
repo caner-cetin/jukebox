@@ -99,6 +99,11 @@ function updateGalleryDisplay(): void {
             galleryScroll.appendChild(yuriItem);
         });
 
+        const itemWidth = 315;
+        const totalWidth = allItems.length * itemWidth;
+        const scrollDistance = totalWidth / 2;
+        galleryScroll.style.setProperty('--scroll-distance', `-${scrollDistance}px`);
+
         if (typeof anime !== 'undefined') {
             anime({
                 targets: galleryScroll.querySelectorAll('.yuri-item'),
@@ -119,6 +124,15 @@ function updateGalleryDisplay(): void {
     const currentCount = currentItems.length;
 
     if (targetCount > currentCount) {
+        const computedStyle = window.getComputedStyle(galleryScroll);
+        const matrix = new DOMMatrix(computedStyle.transform);
+        const currentTranslateX = matrix.m41;
+        const wasPaused = galleryScroll.classList.contains('paused');
+        const animation = computedStyle.animation;
+        const animationDuration = parseFloat(computedStyle.animationDuration) * 1000;
+        
+        galleryScroll.classList.add('paused');
+        
         const newItems = allItems.slice(currentCount);
         const newElements: HTMLElement[] = [];
 
@@ -128,6 +142,32 @@ function updateGalleryDisplay(): void {
             galleryScroll.appendChild(yuriItem);
             newElements.push(yuriItem);
         });
+
+        const itemWidth = 315;
+        const oldTotalWidth = currentCount * itemWidth;
+        const oldScrollDistance = oldTotalWidth / 2;
+        const totalWidth = targetCount * itemWidth;
+        const scrollDistance = totalWidth / 2;
+        galleryScroll.style.setProperty('--scroll-distance', `-${scrollDistance}px`);
+        
+        if (currentTranslateX !== 0 && oldScrollDistance !== 0 && !wasPaused) {
+            const currentProgress = Math.abs(currentTranslateX) / Math.abs(oldScrollDistance);
+            const newAnimationDelay = -(currentProgress * animationDuration);
+            
+            galleryScroll.style.animation = 'none';
+            requestAnimationFrame(() => {
+                galleryScroll.style.transform = `translateX(${currentTranslateX}px)`;
+                galleryScroll.style.animation = `scroll ${animationDuration}ms linear infinite`;
+                galleryScroll.style.animationDelay = `${newAnimationDelay}ms`;
+                if (!wasPaused) {
+                    galleryScroll.classList.remove('paused');
+                }
+            });
+        } else {
+            if (!wasPaused) {
+                galleryScroll.classList.remove('paused');
+            }
+        }
 
         if (typeof anime !== 'undefined') {
             anime({
