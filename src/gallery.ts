@@ -4,6 +4,8 @@ interface YuriImage {
     source?: string;
 }
 
+declare const anime: any;
+
 let yuriImageCache: YuriImage[] = [];
 let isLoadingYuri = false;
 let autoFetchEnabled = true;
@@ -40,24 +42,7 @@ export async function fetchYuriImages(): Promise<void> {
 
             if (yuriImageCache.length > 50) {
                 const itemsToRemove = yuriImageCache.length - 50;
-                const galleryScroll = document.getElementById('galleryScroll');
-                if (galleryScroll && galleryScroll.children.length > 0) {
-                    const currentItems = Array.from(galleryScroll.children) as HTMLElement[];
-                    const itemsToFadeOut = currentItems.slice(0, itemsToRemove * 2);
-                    
-                    itemsToFadeOut.forEach((item) => {
-                        item.style.transition = 'opacity 0.5s ease-out';
-                        item.style.opacity = '0';
-                    });
-                    
-                    setTimeout(() => {
-                        yuriImageCache = yuriImageCache.slice(itemsToRemove);
-                        updateGalleryDisplay();
-                    }, 500);
-                    return;
-                } else {
-                    yuriImageCache = yuriImageCache.slice(itemsToRemove);
-                }
+                yuriImageCache = yuriImageCache.slice(itemsToRemove);
             }
 
             updateGalleryDisplay();
@@ -72,11 +57,9 @@ export async function fetchYuriImages(): Promise<void> {
     }
 }
 
-function createYuriItem(item: YuriImage, index: number): HTMLElement {
+function createYuriItem(item: YuriImage): HTMLElement {
     const yuriItem = document.createElement('div');
     yuriItem.className = 'yuri-item';
-    yuriItem.style.opacity = '0';
-    yuriItem.style.transition = 'opacity 0.5s ease-in';
 
     const img = document.createElement('img');
     img.src = item.sample_url || item.file_url || '';
@@ -95,10 +78,6 @@ function createYuriItem(item: YuriImage, index: number): HTMLElement {
         yuriItem.appendChild(sourceLink);
     }
 
-    requestAnimationFrame(() => {
-        yuriItem.style.opacity = '1';
-    });
-
     return yuriItem;
 }
 
@@ -109,37 +88,85 @@ function updateGalleryDisplay(): void {
     if (yuriImageCache.length === 0) return;
 
     const allItems = [...yuriImageCache, ...yuriImageCache];
-    const currentItems = Array.from(galleryScroll.children) as HTMLElement[];
-    const currentCount = currentItems.length;
-    const targetCount = allItems.length;
+    const currentItems = Array.from(galleryScroll.children).filter(
+        (child) => child.classList.contains('yuri-item')
+    ) as HTMLElement[];
 
-    if (currentCount === 0) {
-        allItems.forEach((item, index) => {
-            const yuriItem = createYuriItem(item, index);
+    if (currentItems.length === 0) {
+        allItems.forEach((item) => {
+            const yuriItem = createYuriItem(item);
+            yuriItem.style.opacity = '0';
             galleryScroll.appendChild(yuriItem);
         });
+
+        if (typeof anime !== 'undefined') {
+            anime({
+                targets: galleryScroll.querySelectorAll('.yuri-item'),
+                opacity: [0, 1],
+                duration: 600,
+                easing: 'easeOutQuad',
+                delay: anime.stagger(50)
+            });
+        } else {
+            currentItems.forEach((item) => {
+                item.style.opacity = '1';
+            });
+        }
         return;
     }
 
+    const targetCount = allItems.length;
+    const currentCount = currentItems.length;
+
     if (targetCount > currentCount) {
         const newItems = allItems.slice(currentCount);
-        newItems.forEach((item, index) => {
-            const yuriItem = createYuriItem(item, currentCount + index);
+        const newElements: HTMLElement[] = [];
+
+        newItems.forEach((item) => {
+            const yuriItem = createYuriItem(item);
+            yuriItem.style.opacity = '0';
             galleryScroll.appendChild(yuriItem);
+            newElements.push(yuriItem);
         });
+
+        if (typeof anime !== 'undefined') {
+            anime({
+                targets: newElements,
+                opacity: [0, 1],
+                duration: 600,
+                easing: 'easeOutQuad',
+                delay: anime.stagger(50)
+            });
+        } else {
+            newElements.forEach((item) => {
+                item.style.opacity = '1';
+            });
+        }
     } else if (targetCount < currentCount) {
         const itemsToRemove = currentCount - targetCount;
-        const itemsToFadeOut = Array.from(galleryScroll.children).slice(0, itemsToRemove) as HTMLElement[];
-        
-        itemsToFadeOut.forEach((item) => {
-            item.style.transition = 'opacity 0.5s ease-out';
-            item.style.opacity = '0';
-            setTimeout(() => {
+        const itemsToFadeOut = currentItems.slice(0, itemsToRemove);
+
+        if (typeof anime !== 'undefined') {
+            anime({
+                targets: itemsToFadeOut,
+                opacity: [1, 0],
+                duration: 500,
+                easing: 'easeInQuad',
+                complete: () => {
+                    itemsToFadeOut.forEach((item) => {
+                        if (item.parentNode === galleryScroll) {
+                            galleryScroll.removeChild(item);
+                        }
+                    });
+                }
+            });
+        } else {
+            itemsToFadeOut.forEach((item) => {
                 if (item.parentNode === galleryScroll) {
                     galleryScroll.removeChild(item);
                 }
-            }, 500);
-        });
+            });
+        }
     }
 }
 
@@ -181,4 +208,3 @@ export function initGallery(): void {
         }
     }, 10000);
 }
-
