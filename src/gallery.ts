@@ -39,7 +39,25 @@ export async function fetchYuriImages(): Promise<void> {
             yuriImageCache.push(...data);
 
             if (yuriImageCache.length > 50) {
-                yuriImageCache = yuriImageCache.slice(-50);
+                const itemsToRemove = yuriImageCache.length - 50;
+                const galleryScroll = document.getElementById('galleryScroll');
+                if (galleryScroll && galleryScroll.children.length > 0) {
+                    const currentItems = Array.from(galleryScroll.children) as HTMLElement[];
+                    const itemsToFadeOut = currentItems.slice(0, itemsToRemove * 2);
+                    
+                    itemsToFadeOut.forEach((item) => {
+                        item.style.transition = 'opacity 0.5s ease-out';
+                        item.style.opacity = '0';
+                    });
+                    
+                    setTimeout(() => {
+                        yuriImageCache = yuriImageCache.slice(itemsToRemove);
+                        updateGalleryDisplay();
+                    }, 500);
+                    return;
+                } else {
+                    yuriImageCache = yuriImageCache.slice(itemsToRemove);
+                }
             }
 
             updateGalleryDisplay();
@@ -54,37 +72,75 @@ export async function fetchYuriImages(): Promise<void> {
     }
 }
 
+function createYuriItem(item: YuriImage, index: number): HTMLElement {
+    const yuriItem = document.createElement('div');
+    yuriItem.className = 'yuri-item';
+    yuriItem.style.opacity = '0';
+    yuriItem.style.transition = 'opacity 0.5s ease-in';
+
+    const img = document.createElement('img');
+    img.src = item.sample_url || item.file_url || '';
+    img.alt = 'Yuri image';
+    img.loading = 'lazy';
+
+    yuriItem.appendChild(img);
+
+    if (item.source) {
+        const sourceLink = document.createElement('a');
+        sourceLink.href = item.source;
+        sourceLink.className = 'source-link';
+        sourceLink.textContent = 'source';
+        sourceLink.target = '_blank';
+        sourceLink.rel = 'noopener noreferrer';
+        yuriItem.appendChild(sourceLink);
+    }
+
+    requestAnimationFrame(() => {
+        yuriItem.style.opacity = '1';
+    });
+
+    return yuriItem;
+}
+
 function updateGalleryDisplay(): void {
     const galleryScroll = document.getElementById('galleryScroll');
     if (!galleryScroll) return;
 
     if (yuriImageCache.length === 0) return;
 
-    galleryScroll.innerHTML = '';
+    const allItems = [...yuriImageCache, ...yuriImageCache];
+    const currentItems = Array.from(galleryScroll.children) as HTMLElement[];
+    const currentCount = currentItems.length;
+    const targetCount = allItems.length;
 
-    [...yuriImageCache, ...yuriImageCache].forEach((item) => {
-        const yuriItem = document.createElement('div');
-        yuriItem.className = 'yuri-item';
+    if (currentCount === 0) {
+        allItems.forEach((item, index) => {
+            const yuriItem = createYuriItem(item, index);
+            galleryScroll.appendChild(yuriItem);
+        });
+        return;
+    }
 
-        const img = document.createElement('img');
-        img.src = item.sample_url || item.file_url || '';
-        img.alt = 'Yuri image';
-        img.loading = 'lazy';
-
-        yuriItem.appendChild(img);
-
-        if (item.source) {
-            const sourceLink = document.createElement('a');
-            sourceLink.href = item.source;
-            sourceLink.className = 'source-link';
-            sourceLink.textContent = 'source';
-            sourceLink.target = '_blank';
-            sourceLink.rel = 'noopener noreferrer';
-            yuriItem.appendChild(sourceLink);
-        }
-
-        galleryScroll.appendChild(yuriItem);
-    });
+    if (targetCount > currentCount) {
+        const newItems = allItems.slice(currentCount);
+        newItems.forEach((item, index) => {
+            const yuriItem = createYuriItem(item, currentCount + index);
+            galleryScroll.appendChild(yuriItem);
+        });
+    } else if (targetCount < currentCount) {
+        const itemsToRemove = currentCount - targetCount;
+        const itemsToFadeOut = Array.from(galleryScroll.children).slice(0, itemsToRemove) as HTMLElement[];
+        
+        itemsToFadeOut.forEach((item) => {
+            item.style.transition = 'opacity 0.5s ease-out';
+            item.style.opacity = '0';
+            setTimeout(() => {
+                if (item.parentNode === galleryScroll) {
+                    galleryScroll.removeChild(item);
+                }
+            }, 500);
+        });
+    }
 }
 
 export function toggleAutoFetch(enabled: boolean): void {
