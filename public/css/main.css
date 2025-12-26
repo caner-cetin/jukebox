@@ -3,8 +3,8 @@ body {
     max-width: 800px;
     margin: 50px auto;
     padding: 20px;
-    padding-left: calc(350px + 20px);
-    padding-right: calc(350px + 20px);
+    padding-left: calc(400px + 20px);
+    padding-right: calc(400px + 20px);
     background: #f5f5f5;
     position: relative;
 }
@@ -12,13 +12,14 @@ body {
 .top-banner {
     max-width: 800px;
     width: 100%;
-    margin: 0 auto 20px;
+    margin: 0 auto 10px;
     padding: 0 10px;
     display: block;
 }
 
 .top-banner img {
     width: 100%;
+    max-height: 120px;
     height: auto;
     display: block;
     object-fit: contain;
@@ -28,17 +29,17 @@ body {
     position: fixed;
     top: 0;
     bottom: 0;
-    width: 350px;
+    width: 400px;
     z-index: 1;
     overflow: hidden;
 }
 
 .vertical-banner.left {
-    left: calc(50% - 400px - 350px - 20px);
+    left: 0;
 }
 
 .vertical-banner.right {
-    right: calc(50% - 400px - 350px - 20px);
+    right: 0;
 }
 
 .vertical-banner img {
@@ -362,39 +363,23 @@ body {
 
 @media (max-width: 1600px) {
     body {
-        padding-left: calc(300px + 15px);
-        padding-right: calc(300px + 15px);
+        padding-left: calc(350px + 15px);
+        padding-right: calc(350px + 15px);
     }
 
     .vertical-banner {
-        width: 300px;
-    }
-
-    .vertical-banner.left {
-        left: calc(50% - 400px - 300px - 15px);
-    }
-
-    .vertical-banner.right {
-        right: calc(50% - 400px - 300px - 15px);
+        width: 350px;
     }
 }
 
 @media (max-width: 1400px) {
     body {
-        padding-left: calc(250px + 10px);
-        padding-right: calc(250px + 10px);
+        padding-left: calc(300px + 10px);
+        padding-right: calc(300px + 10px);
     }
 
     .vertical-banner {
-        width: 250px;
-    }
-
-    .vertical-banner.left {
-        left: calc(50% - 400px - 250px - 10px);
-    }
-
-    .vertical-banner.right {
-        right: calc(50% - 400px - 250px - 10px);
+        width: 300px;
     }
 }
 
@@ -415,7 +400,7 @@ body {
     }
 
     .top-banner img {
-        max-height: 80px;
+        max-height: 60px;
         object-fit: contain;
     }
 }
