@@ -37,10 +37,18 @@
     
     <div class="player-container">
         <div class="player-embed">
+            <button type="button" id="queueToggleButton" class="queue-icon-button" aria-label="Toggle queue">
+                <img src="/public/icons/queue.svg" alt="Queue" class="queue-icon">
+            </button>
             <button type="button" id="historyToggleButton" class="history-icon-button" aria-label="Toggle playing history">
                 <img src="/public/icons/clock-counter-clockwise.svg" alt="History" class="history-icon">
             </button>
             <iframe src="https://radio.cansu.dev/public/wonderhoy/embed" frameborder="0" allowtransparency="true" style="width: 100%; min-height: 120px; height: 120px; border: 0;"></iframe>
+        </div>
+        <div class="queue-popover" id="queuePopover" style="display: none;">
+            <div class="queue-content" id="queueContent">
+                <div class="loading">Loading queue...</div>
+            </div>
         </div>
         <div class="history-popover" id="historyPopover" style="display: none;">
             <div class="history-embed">

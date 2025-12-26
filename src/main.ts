@@ -1,25 +1,38 @@
 import { fetchNowPlaying } from './nowPlaying.js';
 import { initGallery } from './gallery.js';
+import { fetchQueue, displayQueue } from './queue.js';
 
-async function initHistoryToggle() {
-    const toggleButton = document.getElementById('historyToggleButton');
-    const historyPopover = document.getElementById('historyPopover');
-    
-    if (!toggleButton || !historyPopover) return;
-    
-    const { computePosition, flip, shift, offset } = window.FloatingUIDOM || {};
+function getFloatingUI() {
+    const { computePosition, flip, shift, offset } = (window as any).FloatingUIDOM || {};
     if (!computePosition) {
         console.error('Floating UI not loaded');
-        return;
+        return null;
     }
+    return { computePosition, flip, shift, offset };
+}
+
+function initPopover(
+    buttonId: string,
+    popoverId: string,
+    placement: 'bottom-start' | 'bottom-end',
+    onOpen?: () => Promise<void>
+): void {
+    const toggleButton = document.getElementById(buttonId);
+    const popover = document.getElementById(popoverId);
     
+    if (!toggleButton || !popover) return;
+    
+    const floatingUI = getFloatingUI();
+    if (!floatingUI) return;
+    
+    const { computePosition, flip, shift, offset } = floatingUI;
     let isOpen = false;
     
     async function updatePosition() {
-        if (!isOpen || !historyPopover) return;
+        if (!isOpen || !popover) return;
         
-        const { x, y } = await computePosition(toggleButton, historyPopover, {
-            placement: 'bottom-end',
+        const { x, y } = await computePosition(toggleButton, popover, {
+            placement,
             middleware: [
                 offset(8),
                 flip(),
@@ -27,35 +40,41 @@ async function initHistoryToggle() {
             ]
         });
         
-        historyPopover.style.left = `${x}px`;
-        historyPopover.style.top = `${y}px`;
+        popover.style.left = `${x}px`;
+        popover.style.top = `${y}px`;
+    }
+    
+    function setupClickOutside() {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (!popover || !toggleButton) return;
+            if (!popover.contains(event.target as Node) && 
+                !toggleButton.contains(event.target as Node)) {
+                isOpen = false;
+                popover.style.display = 'none';
+                document.removeEventListener('click', handleClickOutside);
+            }
+        };
+        
+        setTimeout(() => {
+            document.addEventListener('click', handleClickOutside);
+        }, 0);
     }
     
     toggleButton.addEventListener('click', async (e) => {
         e.stopPropagation();
         isOpen = !isOpen;
         
-        if (!historyPopover) return;
+        if (!popover) return;
         
         if (isOpen) {
-            historyPopover.style.display = 'block';
+            popover.style.display = 'block';
+            if (onOpen) {
+                await onOpen();
+            }
             await updatePosition();
-            
-            const handleClickOutside = (event: MouseEvent) => {
-                if (!historyPopover) return;
-                if (!historyPopover.contains(event.target as Node) && 
-                    !toggleButton.contains(event.target as Node)) {
-                    isOpen = false;
-                    historyPopover.style.display = 'none';
-                    document.removeEventListener('click', handleClickOutside);
-                }
-            };
-            
-            setTimeout(() => {
-                document.addEventListener('click', handleClickOutside);
-            }, 0);
+            setupClickOutside();
         } else {
-            historyPopover.style.display = 'none';
+            popover.style.display = 'none';
         }
     });
     
@@ -63,8 +82,22 @@ async function initHistoryToggle() {
     window.addEventListener('scroll', updatePosition, true);
 }
 
+function initHistoryToggle(): void {
+    initPopover('historyToggleButton', 'historyPopover', 'bottom-end');
+}
+
+function initQueueToggle(): void {
+    async function loadAndDisplayQueue() {
+        const queueItems = await fetchQueue();
+        displayQueue(queueItems);
+    }
+    
+    initPopover('queueToggleButton', 'queuePopover', 'bottom-start', loadAndDisplayQueue);
+}
+
 function init() {
     initHistoryToggle();
+    initQueueToggle();
     fetchNowPlaying();
     setInterval(fetchNowPlaying, 10000);
     initGallery();
