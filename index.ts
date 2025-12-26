@@ -17,11 +17,14 @@ const server = Bun.serve({
   development: process.env.NODE_ENV == 'development',
   routes: {
     "/": jukebox,
+    "/public/*": async (req) => new Response(await Bun.file(`./public/${req.url.split("/").reverse()[0]}`).bytes()),
     "/api/yuri": async (req) => {
       const uri = new URL(req.url)
-      const page = uri.searchParams.get("page") || "0";
-      const limit = uri.searchParams.get("limit") || "10";
-      const tags = uri.searchParams.get("tags") || "yuri+-loli";
+      // focus, p
+      const p = uri.searchParams
+      const page = p.get("page") || "0";
+      const limit = p.get("limit") || "10";
+      const tags = p.get("tags") || "yuri+-loli";
       const safebooruUrl = `https://safebooru.org/index.php?page=dapi&s=post&q=index&limit=${limit}&json=1&tags=${tags}&pid=${page}`;
       const response = await fetch(safebooruUrl);
       return Response.json(await response.json())
