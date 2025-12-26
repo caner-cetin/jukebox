@@ -10,6 +10,7 @@ let yuriImageCache: YuriImage[] = [];
 let isLoadingYuri = false;
 let autoFetchEnabled = true;
 let fetchInterval: ReturnType<typeof setInterval> | null = null;
+const PIXELS_PER_SECOND = 105;
 const tagSets = [
     'yuri+touhou+-loli',
     'yuri+umamusume+-loli',
@@ -38,14 +39,17 @@ export async function fetchYuriImages(): Promise<void> {
         const data: YuriImage[] = await response.json();
 
         if (data && data.length > 0) {
+            const previousCacheLength = yuriImageCache.length;
             yuriImageCache.push(...data);
 
+            let cacheWasTrimmed = false;
             if (yuriImageCache.length > 50) {
                 const itemsToRemove = yuriImageCache.length - 50;
                 yuriImageCache = yuriImageCache.slice(itemsToRemove);
+                cacheWasTrimmed = true;
             }
 
-            updateGalleryDisplay();
+            updateGalleryDisplay(cacheWasTrimmed, previousCacheLength);
         }
     } catch (error) {
         const galleryScroll = document.getElementById('galleryScroll');
@@ -81,7 +85,7 @@ function createYuriItem(item: YuriImage): HTMLElement {
     return yuriItem;
 }
 
-function updateGalleryDisplay(): void {
+function updateGalleryDisplay(cacheWasTrimmed: boolean = false, previousCacheLength: number = 0): void {
     const galleryScroll = document.getElementById('galleryScroll');
     if (!galleryScroll) return;
 
@@ -102,7 +106,10 @@ function updateGalleryDisplay(): void {
         const itemWidth = 315;
         const totalWidth = allItems.length * itemWidth;
         const scrollDistance = totalWidth / 2;
+        const animationDuration = (Math.abs(scrollDistance) / PIXELS_PER_SECOND) * 1000;
+        
         galleryScroll.style.setProperty('--scroll-distance', `-${scrollDistance}px`);
+        galleryScroll.style.animation = `scroll ${animationDuration}ms linear infinite`;
 
         if (typeof anime !== 'undefined') {
             anime({
@@ -122,6 +129,54 @@ function updateGalleryDisplay(): void {
 
     const targetCount = allItems.length;
     const currentCount = currentItems.length;
+    
+    if (cacheWasTrimmed && previousCacheLength > 0) {
+        const previousAllItems = previousCacheLength * 2;
+        const itemsToRemoveFromDOM = previousAllItems - targetCount;
+        
+        if (itemsToRemoveFromDOM > 0 && itemsToRemoveFromDOM <= currentCount) {
+            const itemsToFadeOut = currentItems.slice(0, itemsToRemoveFromDOM);
+            
+            const itemWidth = 315;
+            const totalWidth = targetCount * itemWidth;
+            const scrollDistance = totalWidth / 2;
+            const newAnimationDuration = (Math.abs(scrollDistance) / PIXELS_PER_SECOND) * 1000;
+            galleryScroll.style.setProperty('--scroll-distance', `-${scrollDistance}px`);
+            
+            if (typeof anime !== 'undefined') {
+                anime({
+                    targets: itemsToFadeOut,
+                    opacity: [1, 0],
+                    duration: 500,
+                    easing: 'easeInQuad',
+                    complete: () => {
+                        itemsToFadeOut.forEach((item) => {
+                            if (item.parentNode === galleryScroll) {
+                                galleryScroll.removeChild(item);
+                            }
+                        });
+                        const wasPaused = galleryScroll.classList.contains('paused');
+                        galleryScroll.style.animation = `scroll ${newAnimationDuration}ms linear infinite`;
+                        if (!wasPaused) {
+                            galleryScroll.classList.remove('paused');
+                        }
+                    }
+                });
+            } else {
+                itemsToFadeOut.forEach((item) => {
+                    if (item.parentNode === galleryScroll) {
+                        galleryScroll.removeChild(item);
+                    }
+                });
+                const wasPaused = galleryScroll.classList.contains('paused');
+                galleryScroll.style.animation = `scroll ${newAnimationDuration}ms linear infinite`;
+                if (!wasPaused) {
+                    galleryScroll.classList.remove('paused');
+                }
+            }
+            return;
+        }
+    }
 
     if (targetCount > currentCount) {
         const computedStyle = window.getComputedStyle(galleryScroll);
@@ -148,22 +203,25 @@ function updateGalleryDisplay(): void {
         const oldScrollDistance = oldTotalWidth / 2;
         const totalWidth = targetCount * itemWidth;
         const scrollDistance = totalWidth / 2;
+        const newAnimationDuration = (Math.abs(scrollDistance) / PIXELS_PER_SECOND) * 1000;
+        
         galleryScroll.style.setProperty('--scroll-distance', `-${scrollDistance}px`);
         
         if (currentTranslateX !== 0 && oldScrollDistance !== 0 && !wasPaused) {
             const currentProgress = Math.abs(currentTranslateX) / Math.abs(oldScrollDistance);
-            const newAnimationDelay = -(currentProgress * animationDuration);
+            const newAnimationDelay = -(currentProgress * newAnimationDuration);
             
             galleryScroll.style.animation = 'none';
             requestAnimationFrame(() => {
                 galleryScroll.style.transform = `translateX(${currentTranslateX}px)`;
-                galleryScroll.style.animation = `scroll ${animationDuration}ms linear infinite`;
+                galleryScroll.style.animation = `scroll ${newAnimationDuration}ms linear infinite`;
                 galleryScroll.style.animationDelay = `${newAnimationDelay}ms`;
                 if (!wasPaused) {
                     galleryScroll.classList.remove('paused');
                 }
             });
         } else {
+            galleryScroll.style.animation = `scroll ${newAnimationDuration}ms linear infinite`;
             if (!wasPaused) {
                 galleryScroll.classList.remove('paused');
             }
@@ -185,6 +243,13 @@ function updateGalleryDisplay(): void {
     } else if (targetCount < currentCount) {
         const itemsToRemove = currentCount - targetCount;
         const itemsToFadeOut = currentItems.slice(0, itemsToRemove);
+        
+        const itemWidth = 315;
+        const totalWidth = targetCount * itemWidth;
+        const scrollDistance = totalWidth / 2;
+        const newAnimationDuration = (Math.abs(scrollDistance) / PIXELS_PER_SECOND) * 1000;
+        galleryScroll.style.setProperty('--scroll-distance', `-${scrollDistance}px`);
+        galleryScroll.style.animation = `scroll ${newAnimationDuration}ms linear infinite`;
 
         if (typeof anime !== 'undefined') {
             anime({
@@ -207,6 +272,13 @@ function updateGalleryDisplay(): void {
                 }
             });
         }
+    } else if (targetCount === currentCount) {
+        const itemWidth = 315;
+        const totalWidth = targetCount * itemWidth;
+        const scrollDistance = totalWidth / 2;
+        const newAnimationDuration = (Math.abs(scrollDistance) / PIXELS_PER_SECOND) * 1000;
+        galleryScroll.style.setProperty('--scroll-distance', `-${scrollDistance}px`);
+        galleryScroll.style.animation = `scroll ${newAnimationDuration}ms linear infinite`;
     }
 }
 
