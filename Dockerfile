@@ -13,4 +13,7 @@ COPY index.html .
 COPY public /app/public
 EXPOSE 3000
 
+ARG AZURACAST_API_KEY
+ENV AZURACAST_API_KEY=${AZURACAST_API_KEY}
+
 CMD ["bun", "run", "index.ts"]

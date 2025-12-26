@@ -30,7 +30,6 @@ const server = Bun.serve({
       const response = await fetch(safebooruUrl);
       return Response.json(await response.json())
     },
-    // no CORS headers originally, not meant to be called from a browser I guess?
-    "/api/station/:id/queue": async (req) => Response.json(await (await fetch(`https://radio.cansu.dev/api/station/${req.params.id}/queue`)).json())
+    "/api/station/:id/queue": async (req) => Response.json(await (await fetch(`https://radio.cansu.dev/api/station/${req.params.id}/queue`, {headers: {'X-API-Key': process.env.AZURACAST_API_KEY || ''}})).json())
   }
 });
