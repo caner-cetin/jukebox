@@ -7,7 +7,7 @@ async function initHistoryToggle() {
     
     if (!toggleButton || !historyPopover) return;
     
-    const { computePosition, flip, shift, offset } = (window as any).FloatingUI || {};
+    const { computePosition, flip, shift, offset } = window.FloatingUIDOM || {};
     if (!computePosition) {
         console.error('Floating UI not loaded');
         return;
