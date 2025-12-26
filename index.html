@@ -37,7 +37,12 @@
         <div class="player-embed">
             <iframe src="https://radio.cansu.dev/public/wonderhoy/embed?layout=large" frameborder="0" allowtransparency="true" style="width: 100%; height: 150px; border: 0;"></iframe>
         </div>
-        <div class="history-embed">
+        <div class="history-toggle" id="historyToggle">
+            <button type="button" id="historyToggleButton">
+                <span id="historyToggleText">Show</span> Playing History
+            </button>
+        </div>
+        <div class="history-embed collapsed" id="historyEmbed">
             <iframe src="https://radio.cansu.dev/public/wonderhoy/history" frameborder="0" allowtransparency="true" style="width: 100%; height: 300px; border: 0;"></iframe>
         </div>
     </div>
