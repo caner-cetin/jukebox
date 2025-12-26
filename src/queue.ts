@@ -22,7 +22,7 @@ interface QueueItem {
 
 export async function fetchQueue(): Promise<QueueItem[]> {
     try {
-        const response = await fetch('https://radio.cansu.dev/api/station/1/queue');
+        const response = await fetch('/api/station/1/queue');
         const data: QueueItem[] = await response.json();
         return data || [];
     } catch (error) {

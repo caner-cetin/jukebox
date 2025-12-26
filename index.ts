@@ -18,16 +18,7 @@ const server = Bun.serve({
   routes: {
     "/": jukebox,
     "/public/*": async (req) => new Response(await Bun.file(`./public/${req.url.split("/").reverse()[0]}`).bytes()),
-    "/dist/*": async (req) => {
-      const filename = req.url.split("/").reverse()[0];
-      const file = Bun.file(`./dist/${filename}`);
-      if (await file.exists()) {
-        return new Response(await file.bytes(), {
-          headers: { "Content-Type": filename.endsWith(".js") ? "application/javascript" : "text/plain" }
-        });
-      }
-      return new Response("Not found", { status: 404 });
-    },
+    "/dist/*": async (req) => new Response(await Bun.file(`./dist/${req.url.split("/").reverse()[0]}`).bytes()),
     "/api/yuri": async (req) => {
       const uri = new URL(req.url)
       // focus, p
@@ -39,5 +30,7 @@ const server = Bun.serve({
       const response = await fetch(safebooruUrl);
       return Response.json(await response.json())
     },
+    // no CORS headers originally, not meant to be called from a browser I guess?
+    "/api/station/:id/queue": async (req) => Response.json(await (await fetch(`https://radio.cansu.dev/api/station/${req.params.id}/queue`)).json())
   }
 });
