@@ -21,8 +21,33 @@
             font-family: Arial, sans-serif;
             max-width: 800px;
             margin: 50px auto;
-            padding: 20px;
+            padding: 20px 240px;
             background: #f5f5f5;
+            position: relative;
+        }
+
+        .vertical-banner {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            width: 350px;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        .vertical-banner.left {
+            left: 0;
+        }
+
+        .vertical-banner.right {
+            right: 0;
+        }
+
+        .vertical-banner img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
         }
 
         .radio-player {
@@ -219,6 +244,16 @@
             height: 18px;
         }
 
+        @media (max-width: 1200px) {
+            body {
+                padding: 20px;
+            }
+
+            .vertical-banner {
+                display: none;
+            }
+        }
+
         @media (max-width: 600px) {
             .radio-player {
                 flex-direction: column;
@@ -245,6 +280,13 @@
     </style>
 </head>
 <body>
+    <div class="vertical-banner left">
+        <img src="/public/wife.png" alt="Left banner">
+    </div>
+    <div class="vertical-banner right">
+        <img src="/public/wife_2.jpg" alt="Right banner">
+    </div>
+    
     <div class="radio-player">
         <div class="cover-art" id="coverArt">
             <img id="coverImage" alt="Album cover">
