@@ -72,47 +72,58 @@ body {
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     overflow: hidden;
     margin-bottom: 10px;
+    position: relative;
+    padding: 12px;
 }
 
-.history-toggle {
-    margin-bottom: 10px;
-    text-align: center;
+.history-icon-button {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 6px;
+    cursor: pointer;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s, transform 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
-.history-toggle button {
+.history-icon-button:hover {
+    background: rgba(255, 255, 255, 1);
+    transform: scale(1.05);
+}
+
+.history-icon-button:active {
+    transform: scale(0.95);
+}
+
+.history-icon {
+    width: 20px;
+    height: 20px;
+    display: block;
+}
+
+.history-popover {
+    position: absolute;
+    z-index: 1000;
     background: white;
     border: 1px solid #ccc;
-    padding: 8px 16px;
-    cursor: pointer;
-    font-size: 14px;
-    color: #333;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     border-radius: 4px;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-    transition: background-color 0.2s;
+    overflow: hidden;
+    min-width: 400px;
+    max-width: 600px;
 }
 
-.history-toggle button:hover {
-    background: #f5f5f5;
-}
-
-.history-embed {
+.history-popover .history-embed {
     width: 100%;
     background: white;
-    border: 1px solid #ccc;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     overflow: hidden;
-    max-height: 300px;
-    transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
-    opacity: 1;
-}
-
-.history-embed.collapsed {
-    max-height: 0;
-    opacity: 0;
-    overflow: hidden;
-    border: none;
-    margin: 0;
-    padding: 0;
 }
 
 .yuri-gallery {
