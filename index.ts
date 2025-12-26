@@ -13,7 +13,7 @@ export class ClientResponse extends Response {
 
 const server = Bun.serve({
   port: process.env.SERVER_PORT || 3000,
-  hostname: process.env.SERVER_HOST || "jukebox.cansu.dev",
+  hostname: "0.0.0.0",
   development: process.env.NODE_ENV == 'development',
   routes: {
     "/": jukebox,
