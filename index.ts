@@ -30,6 +30,6 @@ const server = Bun.serve({
       const response = await fetch(safebooruUrl);
       return Response.json(await response.json())
     },
-    "/api/station/:id/queue": async (req) => Response.json(await (await fetch(`https://radio.cansu.dev/api/station/${req.params.id}/queue`, {headers: {'X-API-Key': process.env.AZURACAST_API_KEY || ''}})).json())
+    "/api/station/:id/queue": async (req) => Response.json(await (await fetch(`https://radio.cansu.dev/api/station/${req.params.id}/queue`, {headers: {'X-API-Key': process.env.AZURACAST_API_KEY || ''}})).json()),
   }
 });

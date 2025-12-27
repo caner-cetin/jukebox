@@ -33,9 +33,9 @@ export async function fetchQueue(): Promise<QueueItem[]> {
 
 function formatPlayingIn(timestamp: number): string {
     const now = Math.floor(Date.now() / 1000);
-    const diff = now - timestamp;
+    const diff = timestamp - now;
     const minutes = Math.floor(diff / 60);
-    
+
     if (minutes < 1) return 'Up next';
     if (minutes === 1) return 'Playing in a minute';
     return `Playing in ${minutes} minutes`;
@@ -54,7 +54,7 @@ export function displayQueue(queueItems: QueueItem[]): void {
         const number = index + 1;
         const song = item.song;
         const playingIn = formatPlayingIn(item.played_at);
-        
+
         return `
             <div class="queue-item">
                 <div class="queue-item-number">${number}</div>
@@ -72,4 +72,3 @@ export function displayQueue(queueItems: QueueItem[]): void {
 
     queueContent.innerHTML = itemsHtml;
 }
-
