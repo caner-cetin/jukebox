@@ -31,14 +31,14 @@ export async function fetchQueue(): Promise<QueueItem[]> {
     }
 }
 
-function formatTimeAgo(timestamp: number): string {
+function formatPlayingIn(timestamp: number): string {
     const now = Math.floor(Date.now() / 1000);
     const diff = now - timestamp;
     const minutes = Math.floor(diff / 60);
     
-    if (minutes < 1) return 'Just now';
-    if (minutes === 1) return '1 minute ago';
-    return `${minutes} minutes ago`;
+    if (minutes < 1) return 'Up next';
+    if (minutes === 1) return 'Playing in a minute';
+    return `Playing in ${minutes} minutes`;
 }
 
 export function displayQueue(queueItems: QueueItem[]): void {
@@ -53,7 +53,7 @@ export function displayQueue(queueItems: QueueItem[]): void {
     const itemsHtml = queueItems.map((item, index) => {
         const number = index + 1;
         const song = item.song;
-        const timeAgo = formatTimeAgo(item.cued_at);
+        const playingIn = formatPlayingIn(item.played_at);
         
         return `
             <div class="queue-item">
@@ -64,7 +64,7 @@ export function displayQueue(queueItems: QueueItem[]): void {
                 <div class="queue-item-info">
                     <div class="queue-item-title">${song.title || 'Unknown Track'}</div>
                     <div class="queue-item-artist">${song.artist || 'Unknown Artist'} - ${song.album || 'Unknown Album'}</div>
-                    <div class="queue-item-time">${timeAgo}</div>
+                    <div class="queue-item-time">${playingIn}</div>
                 </div>
             </div>
         `;

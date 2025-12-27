@@ -5,10 +5,9 @@ export function displayRecordingInfo(
     recording: MusicBrainzRecording, 
     artistData: MusicBrainzArtist | null = null
 ): void {
-    const recordingInfo = document.getElementById('recordingInfo');
-    const recordingInfoContent = document.getElementById('recordingInfoContent');
+    const recordingInfoContent = document.getElementById('infoContent');
     
-    if (!recordingInfo || !recordingInfoContent) return;
+    if (!recordingInfoContent) return;
     
     recordingInfoContent.innerHTML = '';
 
@@ -207,12 +206,11 @@ export function displayRecordingInfo(
         recordingInfoContent.appendChild(linkItem);
     }
 
-    recordingInfo.classList.add('visible');
 }
 
 export function hideRecordingInfo(): void {
-    const recordingInfo = document.getElementById('recordingInfo');
-    if (!recordingInfo) return;
-    recordingInfo.classList.remove('visible');
+    const recordingInfoContent = document.getElementById('infoContent');
+    if (!recordingInfoContent) return;
+    recordingInfoContent.innerHTML = '<div class="loading">No recording information available</div>';
 }
 

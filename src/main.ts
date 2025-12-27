@@ -82,6 +82,10 @@ function initPopover(
     window.addEventListener('scroll', updatePosition, true);
 }
 
+function initInfoToggle(): void {
+    initPopover('infoToggleButton', 'infoPopover', 'bottom-start');
+}
+
 function initHistoryToggle(): void {
     initPopover('historyToggleButton', 'historyPopover', 'bottom-end');
 }
@@ -96,6 +100,7 @@ function initQueueToggle(): void {
 }
 
 function init() {
+    initInfoToggle();
     initHistoryToggle();
     initQueueToggle();
     fetchNowPlaying();
