@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 docker build -t jukebox .
 
 docker stop jukebox && docker rm jukebox
