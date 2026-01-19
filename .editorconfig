@@ -1,0 +1,5 @@
+[*.{js,ts,mjs,css,html,json,sh}]
+indent_style = space
+indent_size = 4
+
+
